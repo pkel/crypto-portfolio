@@ -1,0 +1,3 @@
+<lib>: include
+<src>: include
+<src/*>: package(yojson), package(atdgen), package(core_extended)

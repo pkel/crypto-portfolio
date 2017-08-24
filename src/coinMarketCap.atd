@@ -1,0 +1,17 @@
+type entry =
+  { id:                                        string
+  ; name:                                      string
+  ; symbol:                                    string
+  ; rank:                                      int
+  ; ~price              <ocaml default="0.0">: float
+  ; ~volume_24h         <ocaml default="0.0">: float
+  ; ~market_cap         <ocaml default="0.0">: float
+  ; ~available_supply   <ocaml default="0.0">: float
+  ; ~total_supply       <ocaml default="0.0">: float
+  ; ~percent_change_1h  <ocaml default="0.0">: float
+  ; ~percent_change_24h <ocaml default="0.0">: float
+  ; ~percent_change_7d  <ocaml default="0.0">: float
+  ; ~last_updated       <ocaml default="0">:   int
+  }
+
+type return = entry list

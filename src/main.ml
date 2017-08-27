@@ -19,14 +19,14 @@ let print_config config =
 
 let print_entry entry =
   let open CoinMarketCap_t in
-  sprintf "%4s : %+6.2f %+7.2f %+7.2f : %13.8f * %8.3f = %7.2f"
+  sprintf "%-4s %+4.1f %+5.1f %+5.1f %.2e"
     entry.o.symbol
     entry.o.percent_change_1h
     entry.o.percent_change_24h
     entry.o.percent_change_7d
     entry.o.price
-    entry.amount
-    entry.value
+    (* entry.amount *)
+    (* entry.value *)
   |> print_endline ; entry
 
 let extend amount entry =
@@ -44,8 +44,8 @@ let fold lst =
   in
   let (sum, d1h, d24h, d7d) = List.fold ~init:(0.,0.,0.,0.) ~f lst in
   let change d = 100. *. d /. ( sum +. d ) in
-  sprintf "Portfolio value is %.2f (%+.2f %+.2f %+.2f)"
-    sum (change d1h) (change d24h) (change d7d)
+  sprintf "SUM  %+4.1f %+5.1f %+5.1f %.2e"
+    (change d1h) (change d24h) (change d7d) sum
   |> print_endline
 
 let exec config () =
@@ -59,7 +59,7 @@ let exec config () =
     Map.find data spec.id
     |> Option.value_exn
     |> extend spec.amount) cfg.assets
-  |> List.sort ~cmp:(fun a b -> Pervasives.compare a.value b.value)
+  |> List.sort ~cmp:(fun a b -> Pervasives.compare b.value a.value)
   |> List.map ~f:print_entry
   |> fold
 

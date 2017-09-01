@@ -19,9 +19,9 @@ let print_config config =
 
 let print_entry entry =
   let open CoinMarketCap_t in
-  sprintf "%-4s %+4.1f %+5.1f %+5.1f %.2e"
+  sprintf "%-4s%+5.1f%+6.1f %.2e"
     entry.o.symbol
-    entry.o.percent_change_1h
+    (* entry.o.percent_change_1h *)
     entry.o.percent_change_24h
     entry.o.percent_change_7d
     entry.o.price
@@ -44,8 +44,8 @@ let fold lst =
   in
   let (sum, d1h, d24h, d7d) = List.fold ~init:(0.,0.,0.,0.) ~f lst in
   let change d = 100. *. d /. ( sum +. d ) in
-  sprintf "SUM  %+4.1f %+5.1f %+5.1f %.2e"
-    (change d1h) (change d24h) (change d7d) sum
+  sprintf "SUM %+5.1f%+6.1f %.2e"
+    (change d24h) (change d7d) sum
   |> print_endline
 
 let exec config () =

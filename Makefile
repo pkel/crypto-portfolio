@@ -10,6 +10,10 @@ atd:
 	atdgen -t src/portfolioSpec.atd
 	atdgen -j src/portfolioSpec.atd
 
+atd-clean:
+	rm -f src/coinMarketCap_[tj].ml*
+	rm -f src/portfolioSpec_[tj].ml*
+
 clean:
 	rm -rf build src/_build src/.merlin
 

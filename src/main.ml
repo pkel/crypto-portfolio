@@ -57,8 +57,10 @@ let exec config () =
   List.map ~f:(fun spec ->
     let open PortfolioSpec_t in
     Map.find data spec.id
-    |> Option.value_exn
-    |> extend spec.amount) cfg.assets
+    |> function
+      | Some x -> extend spec.amount x
+      | None -> assert false
+    ) cfg.assets
   |> List.sort ~cmp:(fun a b -> Pervasives.compare b.value a.value)
   |> List.map ~f:print_entry
   |> fold

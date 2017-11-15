@@ -1,12 +1,8 @@
-.PHONY: run run_byte run_native main main.byte main.native clean force atd
 
-run: run_native
+default: main.bc
 
-run_byte: main.byte
-	./main.byte ~/portfolio.json
-
-run_native: main.native
-	./main.native ~/portfolio.json
+test: main.bc
+	build/main.bc
 
 atd:
 	atdgen -t src/coinMarketCap.atd
@@ -15,14 +11,19 @@ atd:
 	atdgen -j src/portfolioSpec.atd
 
 clean:
-	rm -rf main.native main.byte _build
+	rm -rf build src/_build src/.merlin
 
-force: clean main
+all: main.bc main.exe
 
-main: main.native
+build:
+	mkdir build
 
-main.byte:
-	corebuild main.byte
+main.bc: build
+	cd src ; jbuilder build main.bc
+	rm -f build/main.bc
+	ln -s ../src/_build/default/main.bc build/
 
-main.native:
-	corebuild main.native
+main.exe: build
+	cd src ; jbuilder build main.exe
+	rm -f build/main.exe
+	ln -s ../src/_build/default/main.exe build/

@@ -7,10 +7,11 @@ type extended =
   }
 
 let read_spec file =
-  In_channel.with_file file ~f:(fun ic ->
+  try In_channel.with_file file ~f:(fun ic ->
     In_channel.input_all ic
     |> PortfolioSpec_j.config_of_string
-  )
+  ) with
+  | Sys_error err -> prerr_endline err ; exit 1
 
 let print_config config =
   PortfolioSpec_j.string_of_config config
@@ -31,19 +32,19 @@ let print_entry entry =
 
 let extend amount entry =
   let open CoinMarketCap_t in
-  { o = entry ; amount = amount; value = amount *. entry.price }
+  { o = entry ; amount; value = amount *. entry.price }
 
 let fold lst =
   let f (sum, d1h, d24h, d7d) e =
     let open CoinMarketCap_t in
     ( sum  +.  e.value
-    , d1h  +. (e.value  /. 100. *. e.o.percent_change_1h)
-    , d24h +. (e.value  /. 100. *. e.o.percent_change_24h)
-    , d7d  +. (e.value  /. 100. *. e.o.percent_change_7d)
+    , d1h  +. (e.value /. (1. +. e.o.percent_change_1h  /. 100.))
+    , d24h +. (e.value /. (1. +. e.o.percent_change_24h /. 100.))
+    , d7d  +. (e.value /. (1. +. e.o.percent_change_7d  /. 100.))
     )
   in
   let (sum, d1h, d24h, d7d) = List.fold ~init:(0.,0.,0.,0.) ~f lst in
-  let change d = 100. *. d /. ( sum +. d ) in
+  let change d = (sum -. d) /. d *. 100. in
   sprintf "SUM %+5.1f%+6.1f %.2e"
     (change d24h) (change d7d) sum
   |> print_endline
@@ -59,14 +60,17 @@ let exec config () =
     Map.find data spec.id
     |> function
       | Some x -> extend spec.amount x
-      | None -> assert false
+      | None -> Printf.eprintf "Invalid id %s in %s\n" spec.id config ; exit 1
     ) cfg.assets
   |> List.sort ~cmp:(fun a b -> Pervasives.compare b.value a.value)
   |> List.map ~f:print_entry
   |> fold
 
 let readme () =
-  "No long information provided."
+  String.concat ~sep:"\n"
+    [ "CONFIGURATION    File containing portfolio description. If none is"
+    ; "                 given the program defaults to ./portfolio.json"
+    ]
 
 let spec =
   let open Command.Spec in

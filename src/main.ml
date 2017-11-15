@@ -6,17 +6,9 @@ type extended =
   ; value  : float
   }
 
-let read_spec file =
-  try In_channel.with_file file ~f:(fun ic ->
-    In_channel.input_all ic
-    |> PortfolioSpec_j.config_of_string
-  ) with
-  | Sys_error err -> prerr_endline err ; exit 1
-
-let print_config config =
-  PortfolioSpec_j.string_of_config config
-  |> Yojson.Safe.prettify
-  |> print_endline
+let extend amount entry =
+  let open CoinMarketCap_t in
+  { o = entry ; amount; value = amount *. entry.price }
 
 let print_entry entry =
   let open CoinMarketCap_t in
@@ -30,10 +22,6 @@ let print_entry entry =
     (* entry.value *)
   |> print_endline ; entry
 
-let extend amount entry =
-  let open CoinMarketCap_t in
-  { o = entry ; amount; value = amount *. entry.price }
-
 let fold lst =
   let f (sum, d1h, d24h, d7d) e =
     let open CoinMarketCap_t in
@@ -45,12 +33,12 @@ let fold lst =
   in
   let (sum, d1h, d24h, d7d) = List.fold ~init:(0.,0.,0.,0.) ~f lst in
   let change d = (sum -. d) /. d *. 100. in
-  sprintf "SUM %+5.1f%+6.1f %.2e"
+  sprintf "\n    %+5.1f%+6.1f %.2e"
     (change d24h) (change d7d) sum
   |> print_endline
 
 let exec config () =
-  let cfg = read_spec config in
+  let cfg = PortfolioSpec.read config in
   let data =
     let open CoinMarketCap in
     get ~quote:EUR ()

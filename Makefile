@@ -22,6 +22,10 @@ all: main.bc main.exe
 build:
 	mkdir build
 
+bot: main.exe
+	rm -f bot/main
+	cp src/_build/default/main.exe bot/main
+
 main.bc: build
 	cd src ; jbuilder build main.bc
 	rm -f build/main.bc

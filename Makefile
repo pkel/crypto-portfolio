@@ -15,7 +15,7 @@ atd-clean:
 	rm -f src/portfolioSpec_[tj].ml*
 
 clean:
-	rm -rf build src/_build src/.merlin
+	rm -rf build src/_build src/.merlin bot/report
 
 all: main.bc main.exe
 

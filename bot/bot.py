@@ -28,6 +28,7 @@ def send_portfolio(bot, user_id):
     if os.path.isfile(filename):
         ret = subprocess.check_output(
             [ './report',
+                '-s',
                 '{}.json'.format(user_id) ]
             , universal_newlines = True )
         ret = "```\n{:s}\n```".format(ret)

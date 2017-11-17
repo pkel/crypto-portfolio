@@ -1,58 +1,99 @@
 open Core
 
-type extended =
+type entry_ext =
   { o : CoinMarketCap.entry
   ; amount : float
   ; value  : float
   }
 
-let extend amount entry =
+let extend_cmc amount entry =
   let open CoinMarketCap_t in
   { o = entry ; amount; value = amount *. entry.price }
 
-let print_entry entry =
-  let open CoinMarketCap_t in
-  sprintf "%-4s%+5.1f%+6.1f %.2e"
-    entry.o.symbol
-    (* entry.o.percent_change_1h *)
-    entry.o.percent_change_24h
-    entry.o.percent_change_7d
-    entry.o.price
-    (* entry.amount *)
-    (* entry.value *)
-  |> print_endline ; entry
+type report_data =
+  { entries : entry_ext list
+  (* sum in fiat *)
+  ; sum : float
+  (* changes in percent *)
+  ; change_1h : float
+  ; change_24h : float
+  ; change_7d : float
+  }
 
-let fold lst =
-  let f (sum, d1h, d24h, d7d) e =
-    let open CoinMarketCap_t in
-    ( sum  +.  e.value
-    , d1h  +. (e.value /. (1. +. e.o.percent_change_1h  /. 100.))
-    , d24h +. (e.value /. (1. +. e.o.percent_change_24h /. 100.))
-    , d7d  +. (e.value /. (1. +. e.o.percent_change_7d  /. 100.))
-    )
+let prepare_report cmc cfg =
+  let open PortfolioSpec_t in
+  let entries = List.map ~f:(fun spec ->
+    Map.find cmc spec.id
+    |> function
+      | Some x -> extend_cmc spec.amount x
+      | None -> Printf.eprintf "Invalid id %s in portfolio specification\n"
+            spec.id ; exit 1
+    ) cfg.assets
+    |> List.sort ~cmp:(fun a b -> Pervasives.compare b.value a.value)
   in
-  let (sum, d1h, d24h, d7d) = List.fold ~init:(0.,0.,0.,0.) ~f lst in
+  let sum, d1h, d24h, d7d = List.fold ~f:( fun (sum, d1h, d24h, d7d) e ->
+      ( sum  +.  e.value
+      , d1h  +. (e.value /. (1. +. e.o.percent_change_1h  /. 100.))
+      , d24h +. (e.value /. (1. +. e.o.percent_change_24h /. 100.))
+      , d7d  +. (e.value /. (1. +. e.o.percent_change_7d  /. 100.))
+      ) ) ~init:(0.,0.,0.,0.) entries in
   let change d = (sum -. d) /. d *. 100. in
-  sprintf "\n    %+5.1f%+6.1f %.2e"
-    (change d24h) (change d7d) sum
-  |> print_endline
+  { entries ; sum ; change_1h = change d1h ; change_24h = change d24h
+  ; change_7d = change d7d }
 
-let exec config () =
+
+module Short = struct
+  open CoinMarketCap
+  open Printf
+
+  let print_entry entry =
+    printf "%-4s%+5.1f%+6.1f %.2e\n"
+      entry.o.symbol
+      entry.o.percent_change_24h
+      entry.o.percent_change_7d
+      entry.o.price
+
+  let print d =
+    printf   "Assets:\n";
+    printf "      24h    7d     rate\n";
+    List.iter ~f:print_entry d.entries ;
+    printf "\nCombined:\n";
+    printf "      24h    7d    value\n";
+    printf "    %+5.1f%+6.1f %.2e\n"
+      d.change_24h d.change_7d d.sum
+end
+
+module Long = struct
+  open CoinMarketCap
+  open Printf
+
+  let print_entry entry =
+    printf "%-4s%+6.1f%+6.1f%+7.1f  %.2e  %.2e  %.2e\n"
+      entry.o.symbol
+      entry.o.percent_change_1h
+      entry.o.percent_change_24h
+      entry.o.percent_change_7d
+      entry.o.price
+      entry.amount
+      entry.value
+
+  let print d =
+    printf   "Assets:\n";
+    printf "        1h   24h     7d      rate    amount     value\n";
+    List.iter ~f:print_entry d.entries ;
+    printf "\nCombined:\n";
+    printf "        1h   24h     7d                         value\n";
+    printf "    %+6.1f%+6.1f%+7.1f                      %.2e\n"
+      d.change_1h d.change_24h d.change_7d d.sum
+end
+
+let exec short config () =
   let cfg = PortfolioSpec.read config in
   let data =
-    let open CoinMarketCap in
-    get ~quote:EUR ()
+    CoinMarketCap.(get ~quote:EUR ())
   in
-  List.map ~f:(fun spec ->
-    let open PortfolioSpec_t in
-    Map.find data spec.id
-    |> function
-      | Some x -> extend spec.amount x
-      | None -> Printf.eprintf "Invalid id %s in %s\n" spec.id config ; exit 1
-    ) cfg.assets
-  |> List.sort ~cmp:(fun a b -> Pervasives.compare b.value a.value)
-  |> List.map ~f:print_entry
-  |> fold
+  let print = if short then Short.print else Long.print in
+  prepare_report data cfg |> print
 
 let readme () =
   String.concat ~sep:"\n"
@@ -63,6 +104,7 @@ let readme () =
 let spec =
   let open Command.Spec in
   empty
+  +> flag ~aliases:["short"] "s" no_arg ~doc:"print short version of the report"
   +> anon (maybe_with_default "portfolio.json" ("configuration" %: string))
 
 let command =

@@ -39,8 +39,16 @@ def send_portfolio(bot, user_id):
         ret = 'You are not registrated. This bot will not help you.'
         bot.send_message(user_id, text=ret, parse_mode='markdown')
 
+def read_api_token():
+    try:
+        with open ("api.token", "r") as f:
+           t = f.read().splitlines()[0]
+        return(t)
+    except Exception as e:
+        print("Problem while reading token from api.token file")
+        exit(1)
 
-updater = Updater('437620095:AAE8Gtpxu8D8W_nJZ238I0Q_mBOm6WylFVk')
+updater = Updater(token=read_api_token())
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CallbackQueryHandler(callback))

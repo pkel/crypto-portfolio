@@ -16,7 +16,7 @@ let currency_str = function
 
 let api_url q =
   let str = currency_str q in
-  sprintf "https://api.coinmarketcap.com/v1/ticker/?convert=%s" str
+  sprintf "https://api.coinmarketcap.com/v1/ticker/?limit=0&convert=%s" str
 
 let to_entry q o =
   o

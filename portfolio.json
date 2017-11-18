@@ -1,0 +1,16 @@
+{
+   "assets" : [
+      {
+         "amount" : 0.75,
+         "id" : "bitcoin"
+      },
+      {
+         "amount" : 3.6,
+         "id" : "ethereum"
+      },
+      {
+         "amount" : 42,
+         "id" : "dogecoin"
+      }
+   ]
+}

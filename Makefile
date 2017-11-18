@@ -1,8 +1,7 @@
+all: crypto-portfolio
 
-default: main.bc
-
-test: main.bc
-	build/main.bc
+test: crypto-portfolio
+	./crypto-portfolio
 
 atd:
 	atdgen -t src/coinMarketCap.atd
@@ -15,26 +14,21 @@ atd-clean:
 	rm -f src/portfolioSpec_[tj].ml*
 
 clean:
-	rm -rf build src/_build src/.merlin bot/report
-
-all: main.bc main.exe
+	rm -rf crypto-portfolio src/_build src/.merlin bot/report
 
 build:
 	mkdir build
 
-bot: main.exe
-	rm -f bot/main
-	cp src/_build/default/main.exe bot/report
+.PHONY: bot
+bot: crypto-portfolio
+	rm -f bot/report
+	cp crypto-portfolio bot/report
 
 push-bot: bot
 	rsync bot/ jdenali:portfolio-bot/ -rv
 
-main.bc: build
-	cd src ; jbuilder build main.bc
-	rm -f build/main.bc
-	ln -s ../src/_build/default/main.bc build/
-
-main.exe: build
+.PHONY: crypto-portfolio
+crypto-portfolio:
 	cd src ; jbuilder build main.exe
-	rm -f build/main.exe
-	ln -s ../src/_build/default/main.exe build/
+	rm -f crypto-portfolio
+	ln -s src/_build/default/main.exe crypto-portfolio

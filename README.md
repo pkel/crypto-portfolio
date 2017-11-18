@@ -28,7 +28,7 @@ portfolio has to be specified in a json file.
 You can then generate a report.
 
 ```
-#> build/crypto-portfolio portfolio.json
+#> ./crypto-portfolio portfolio.json
 Assets:
         1h   24h     7d      rate    amount     value
 BTC   +0.1  +0.1  +22.5  6.58e+03  7.50e-01  4.94e+03

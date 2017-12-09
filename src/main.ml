@@ -87,7 +87,7 @@ module Long = struct
   open Printf
 
   let print_entry entry =
-    printf "%-4s%+6.1f%+6.1f%+7.1f  %.2e  %.2e  %.2e\n"
+    printf "%-5s%+6.1f%+6.1f%+7.1f  %.2e  %.2e  %.2e\n"
       entry.o.symbol
       entry.o.percent_change_1h
       entry.o.percent_change_24h
@@ -98,11 +98,11 @@ module Long = struct
 
   let print d =
     printf   "Assets:\n";
-    printf "        1h   24h     7d      rate    amount     value\n";
+    printf "         1h   24h     7d      rate    amount     value\n";
     List.iter ~f:print_entry d.assets ;
     printf "\nCombined:\n";
-    printf "        1h   24h     7d                         value\n";
-    printf "    %+6.1f%+6.1f%+7.1f                      %.2e\n"
+    printf "         1h   24h     7d                         value\n";
+    printf "     %+6.1f%+6.1f%+7.1f                      %.2e\n"
       d.change_1h d.change_24h d.change_7d d.sum
 end
 
